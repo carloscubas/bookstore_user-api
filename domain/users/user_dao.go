@@ -2,6 +2,7 @@ package users
 
 import (
 	"fmt"
+	"github.com/carloscubas/bookstore_user-api/utils/date_utils"
 	"github.com/carloscubas/bookstore_user-api/utils/erros"
 )
 
@@ -30,6 +31,8 @@ func (user *User) Save() *erros.RestErr {
 		}
 		return erros.NewBadRequestError(fmt.Sprintf("user %d alread exist", user.Id))
 	}
+
+	user.DateCreated = date_utils.GetNowString()
 	usersDB[user.Id] = user
 	return nil
 }
