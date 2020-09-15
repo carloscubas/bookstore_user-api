@@ -10,4 +10,6 @@ func mapUrls() {
 
 	route.GET("/users/:user_id", user.GetUser)
 	route.POST("/users", user.CreateUsers)
+	route.PUT("/users/:user_id", user.UpdateUser)
+	route.PATCH("/users/:user_id", user.UpdateUser)
 }

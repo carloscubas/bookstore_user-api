@@ -5,7 +5,6 @@ import (
 	"github.com/carloscubas/bookstore_user-api/datasources/mysql/users_db"
 	"github.com/carloscubas/bookstore_user-api/utils/date_utils"
 	"github.com/carloscubas/bookstore_user-api/utils/erros"
-	"strings"
 )
 
 const (
@@ -48,13 +47,9 @@ func (user *User) Save() *erros.RestErr {
 
 	user.DateCreated = date_utils.GetNowString()
 
-	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
-	if err != nil {
-		if strings.Contains(err.Error(), indexUniqueEmail) {
-			return erros.NewBadRequestError(fmt.Sprintf("email %s already exist", user.Email))
-		}
-		return erros.NewInternalServerError(
-			fmt.Sprintf("error when try to save user %s", err.Error()))
+	insertResult, saveErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
+	if saveErr != nil {
+		return erros.NewInternalServerError(saveErr.Error())
 	}
 	userId, err := insertResult.LastInsertId()
 	if err != nil {
@@ -63,5 +58,19 @@ func (user *User) Save() *erros.RestErr {
 
 	user.Id = userId
 
+	return nil
+}
+
+func (user *User) Update() *erros.RestErr {
+	stmt, err := users_db.Client.Prepare(queryUpdateUser)
+	if err != nil {
+		return erros.NewInternalServerError(err.Error())
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(user.FirstName, user.LastName, user.Email, user.Id)
+	if err != nil {
+		return erros.NewInternalServerError(fmt.Sprintf("error when try to update user %s", err.Error()))
+	}
 	return nil
 }
